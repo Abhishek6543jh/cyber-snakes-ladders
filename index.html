@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Snakes & Ladders - Synchronous Real-time Arcade</title>
+  <meta name="description" content="A premium, real-time multiplayer Snakes & Ladders game featuring high-fidelity neon design, 3D CSS dice, AI bots, and dynamic synthesised audio.">
+  <link rel="stylesheet" href="styles.css?v=1.9">
+</head>
+<body>
+  <!-- Canvas for Confetti particle effects -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Floating Emoji Overlay Area -->
+  <div id="emoji-overlay-layer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 180; overflow: hidden;"></div>
+
+  <!-- Audio Controls Group Panel -->
+  <div class="audio-controls-group" style="position: absolute; top: 25px; right: 25px; display: flex; gap: 12px; z-index: 100;">
+    <!-- Mute SFX Button -->
+    <button id="audio-toggle" class="audio-control" aria-label="Toggle Audio" style="position: static;">
+      <svg id="audio-icon-on" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+      </svg>
+      <svg id="audio-icon-off" class="hidden" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+      </svg>
+      <span id="audio-status-text">SFX Off</span>
+    </button>
+    
+    <!-- Mute Music Button -->
+    <button id="music-toggle" class="audio-control" aria-label="Toggle Music" style="position: static;">
+      <svg id="music-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+      </svg>
+      <span id="music-status-text">Music Off</span>
+    </button>
+  </div>
+
+  <main id="app-container">
+    <!-- SETUP SCREEN -->
+    <section id="setup-screen" class="glass-panel">
+      <h1 class="game-title">CYBER SNAKES &amp; LADDERS</h1>
+      
+      <!-- LOBBY / TAB SELECTORS -->
+      <div id="setup-tabs-header" class="setup-tabs">
+        <button type="button" class="tab-btn active" id="tab-btn-local">LOCAL PLAY</button>
+        <button type="button" class="tab-btn" id="tab-btn-online">ONLINE PLAY</button>
+      </div>
+
+      <!-- LOCAL PLAY FORM -->
+      <div id="tab-content-local" class="tab-content-wrapper">
+        <div class="controls-row">
+          <div class="player-count-selector">
+            <span>Players:</span>
+            <button type="button" class="btn-count" data-count="2">2</button>
+            <button type="button" class="btn-count active" data-count="3">3</button>
+            <button type="button" class="btn-count" data-count="4">4</button>
+          </div>
+          <div style="font-size: 14px; color: var(--text-muted);">
+            Configure names &amp; AI Bot status below
+          </div>
+        </div>
+
+        <form id="setup-form">
+          <div class="setup-grid" id="setup-players-container">
+            <!-- Player rows generated dynamically by app.js -->
+          </div>
+
+          <button type="submit" class="btn-primary" id="start-game-btn">LAUNCH GAME</button>
+        </form>
+      </div>
+
+      <!-- ONLINE LOBBY FORM -->
+      <div id="tab-content-online" class="tab-content-wrapper hidden">
+        <div class="online-setup-box">
+          <div class="setup-card" style="grid-template-columns: 1fr; border-color: rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2);">
+            <label style="font-weight: 600; margin-bottom: 8px; font-size: 14px; color: var(--text-muted);">YOUR NICKNAME</label>
+            <input type="text" id="online-nickname" class="setup-input" placeholder="Cyber Knight" value="Player">
+          </div>
+          
+          <div class="online-actions-grid">
+            <button type="button" class="btn-primary" id="btn-create-lobby">CREATE LOBBY</button>
+            <div class="join-lobby-box">
+              <input type="text" id="join-room-code" class="setup-input" placeholder="ROOM CODE" maxlength="4">
+              <button type="button" class="btn-secondary" id="btn-join-lobby">JOIN ROOM</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOBBY WAITING SCREEN -->
+      <div id="lobby-panel" class="tab-content-wrapper hidden">
+        <div class="lobby-header">
+          <h2>Room Code</h2>
+          <div class="lobby-code-display" id="lobby-code-val">----</div>
+          <p>Share this code with online friends to invite them to the game</p>
+        </div>
+
+        <div class="scoreboard-title">Connected Players (<span id="lobby-count-val">0</span>/4)</div>
+        <div class="setup-grid" id="lobby-players-container">
+          <!-- Players in online lobby room -->
+        </div>
+
+        <div class="lobby-controls" id="lobby-host-controls">
+          <button type="button" class="btn-secondary" id="lobby-add-bot-btn">ADD AI BOT</button>
+          <button type="button" class="btn-primary" id="lobby-start-btn">START ONLINE GAME</button>
+        </div>
+        
+        <div id="lobby-guest-msg" class="hidden">
+          Waiting for room host to launch game... 🚀
+        </div>
+        
+        <button type="button" class="btn-secondary" id="lobby-leave-btn">LEAVE ROOM</button>
+      </div>
+    </section>
+
+    <!-- GAMEPLAY SCREEN -->
+    <section id="play-screen" class="glass-panel hidden">
+      <!-- Left side: Game Board -->
+      <!-- Left side: Game Board & Controls -->
+      <div class="board-column" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+        <div id="board-wrapper">
+          <div class="board-grid" id="board-grid">
+            <!-- 100 tiles generated dynamically by app.js -->
+          </div>
+          <svg id="board-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="neon-glow-snake" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="neon-glow-ladder" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <!-- Holographic path guides and dynamic paths for snakes & ladders rendered here -->
+          </svg>
+          <div id="tokens-layer">
+            <!-- Player tokens rendered here by app.js -->
+          </div>
+        </div>
+
+        <div class="game-controls">
+          <div class="status-announcer">
+            <span class="status-label">Active Turn</span>
+            <span class="status-text" id="active-player-name">Player 1</span>
+            <!-- Active countdown timer bar -->
+            <div id="timer-bar-container" style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 10px; overflow: hidden; position: relative;">
+              <div id="timer-bar-fill" style="width: 100%; height: 100%; background: var(--neon-blue); border-radius: 2px; transition: width 0.1s linear, background-color 0.3s;"></div>
+            </div>
+          </div>
+
+          <div class="dice-container" id="dice-trigger" aria-label="Roll Dice" title="Click to Roll!">
+            <div class="dice" id="dice-3d">
+              <div class="dice-face face-1">1</div>
+              <div class="dice-face face-6">6</div>
+              <div class="dice-face face-3">3</div>
+              <div class="dice-face face-4">4</div>
+              <div class="dice-face face-2">2</div>
+              <div class="dice-face face-5">5</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: Scoreboard and logs -->
+      <div class="side-panel">
+        <div class="scoreboard">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="scoreboard-title" style="margin-bottom: 0;">Players</h2>
+            <div id="play-room-code-tag" class="hidden" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--neon-blue); background: rgba(0, 210, 255, 0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(0, 210, 255, 0.2);">ROOM: ----</div>
+          </div>
+          <div class="scoreboard-list" id="scoreboard-list" style="margin-top: 15px;">
+            <!-- Player rows rendered dynamically by app.js -->
+          </div>
+        </div>
+
+        <!-- Quick-Chat Reactions Drawer -->
+        <div class="quick-chat-reactions" style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px;">
+          <span class="scoreboard-title" style="margin-bottom: 0; font-size: 11px;">Quick Reactions</span>
+          <div class="emoji-row" style="display: flex; justify-content: space-between; gap: 8px;">
+            <button type="button" class="btn-emoji-chat" data-emoji="😂" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 20px; padding: 6px; cursor: pointer; flex: 1; transition: transform 0.2s, background-color 0.2s;">😂</button>
+            <button type="button" class="btn-emoji-chat" data-emoji="😢" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 20px; padding: 6px; cursor: pointer; flex: 1; transition: transform 0.2s, background-color 0.2s;">😢</button>
+            <button type="button" class="btn-emoji-chat" data-emoji="🚀" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 20px; padding: 6px; cursor: pointer; flex: 1; transition: transform 0.2s, background-color 0.2s;">🚀</button>
+            <button type="button" class="btn-emoji-chat" data-emoji="🐍" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 20px; padding: 6px; cursor: pointer; flex: 1; transition: transform 0.2s, background-color 0.2s;">🐍</button>
+            <button type="button" class="btn-emoji-chat" data-emoji="🔥" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 20px; padding: 6px; cursor: pointer; flex: 1; transition: transform 0.2s, background-color 0.2s;">🔥</button>
+            <button type="button" class="btn-emoji-chat" data-emoji="👑" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 20px; padding: 6px; cursor: pointer; flex: 1; transition: transform 0.2s, background-color 0.2s;">👑</button>
+          </div>
+        </div>
+
+        <div class="game-logs">
+          <h2 class="logs-title">Event Log</h2>
+          <div class="logs-content" id="logs-content">
+            <!-- Live event logs rendered dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WINNER OVERLAY SCREEN -->
+    <section id="winner-screen" class="glass-panel hidden">
+      <div class="winner-cup">🏆</div>
+      <h1 class="game-title" style="margin-bottom: 10px;">VICTORY!</h1>
+      <h2 class="winner-heading" id="winner-name">Player 1 Wins!</h2>
+      <p class="winner-detail">They conquered the grid and claimed the cyber crown.</p>
+      <button class="btn-primary" id="restart-game-btn" style="max-width: 250px; margin: auto;">PLAY AGAIN</button>
+    </section>
+  </main>
+
+  <!-- Include Socket.io Client library -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="app.js?v=1.9"></script>
+</body>
+</html>

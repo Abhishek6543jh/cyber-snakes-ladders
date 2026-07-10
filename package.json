@@ -1,0 +1,16 @@
+{
+  "name": "cyber-snakes-ladders",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Premium real-time Snakes and Ladders game",
+  "main": "app.js",
+  "scripts": {
+    "test": "node test/game.test.js",
+    "start": "npx -y http-server ./ -p 3000",
+    "dev": "npx -y http-server ./ -p 3000"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}
