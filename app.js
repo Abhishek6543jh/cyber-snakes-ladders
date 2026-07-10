@@ -232,7 +232,7 @@ class AppController {
   connectSocket() {
     if (this.socket) return;
     
-    this.socket = io();
+    this.socket = io({ transports: ['websocket'] });
 
     this.socket.on('room-created', ({ code, player }) => {
       this.roomCode = code;
