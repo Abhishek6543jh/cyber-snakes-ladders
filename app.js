@@ -797,11 +797,11 @@ class AppController {
         setTimeout(() => {
           this.isDiceRolling = false;
           this.executeMove(targetValue);
-        }, 600);
+        }, 300);
 
-      }, 1000);
+      }, 400);
 
-    }, 1150);
+    }, 700);
   }
 
   executeOnlineRoll(rollValue) {
@@ -880,14 +880,14 @@ class AppController {
         if (token) token.classList.remove('hopping');
         triggerShockwave(step.to); // trigger contact wave
         this.animateSteps(playerId, steps, index + 1, callback);
-      }, 350);
+      }, 180);
 
     } else if (step.type === 'ladder') {
       audio.playLadderClimb();
       const dest = getBoardCoordinates(step.to);
       
       let start = getBoardCoordinates(step.from);
-      let duration = 750;
+      let duration = 400;
       let startTime = performance.now();
 
       const climb = (now) => {
@@ -929,7 +929,7 @@ class AppController {
       tempPath.setAttribute('d', pathD);
       const pathLength = tempPath.getTotalLength();
       
-      let duration = 950;
+      let duration = 500;
       let startTime = performance.now();
 
       const slide = (now) => {
@@ -957,7 +957,7 @@ class AppController {
   animateStraightSlide(playerId, from, to, callback) {
     const start = getBoardCoordinates(from);
     const dest = getBoardCoordinates(to);
-    let duration = 800;
+    let duration = 450;
     let startTime = performance.now();
 
     const frame = (now) => {
@@ -1016,14 +1016,14 @@ class AppController {
             if (this.game.getCurrentPlayer().id === nextPlayer.id) {
               this.socket.emit('roll-dice', { code: this.roomCode });
             }
-          }, 1500);
+          }, 600);
         }
       } else {
         setTimeout(() => {
           if (this.game.getCurrentPlayer().id === nextPlayer.id) {
             this.rollDice();
           }
-        }, 1200);
+        }, 500);
       }
     }
   }
